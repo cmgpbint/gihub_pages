@@ -2,9 +2,9 @@
     "name": "generate-html",
     "version": "1.0.0",
     "description": "Script to generate HTML and SVG from JSON data",
-    "main": "app/generate_html.js",
+    "main": "generate_html.js",
     "scripts": {
-      "generate": "node app/generate_html.js"
+      "generate": "node generate_html.js"
     },
     "author": "",
     "license": "ISC"
