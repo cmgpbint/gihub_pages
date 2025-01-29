@@ -1,0 +1,40 @@
+name: Generate HTML and SVG
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main  # Change this to your default branch if different
+    paths:
+      - 'data.json'          # Trigger when data.json changes
+      - 'app/**'             # Trigger when files in the app directory change
+      - 'package.json'       # Trigger when package.json changes
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false  # Don't use the token from the checkout action
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Specify the Node.js version you prefer
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate HTML and SVG
+        run: npm run generate
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'Auto-generated index.html and image.svg from data.json'
+          file_pattern: |
+            index.html
+            image.svg

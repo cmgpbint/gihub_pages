@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>API Proxy Deployment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom CSS -->
     <style>
         body { background-color: #f8f9fa; }
         .not-deployed { color: red; font-weight: bold; }
@@ -22,11 +23,11 @@
         th.uat, .child-table.uat th { background-color: #dc3545 !important; color: white !important; }
 
         /* Darker Backgrounds for Child Tables */
-        .stage-dev { background-color: #0056b3 !important; } /* Dark Blue */
-        .stage-hf  { background-color: #4b0082 !important; } /* Dark Purple */
-        .stage-sit { background-color: #1e7e34 !important; } /* Dark Green */
-        .stage-stg { background-color: #c69500 !important; } /* Dark Yellow */
-        .stage-uat { background-color: #a71d2a !important; } /* Dark Red */
+        .stage-dev { background-color: #0056b3 !important; }
+        .stage-hf  { background-color: #4b0082 !important; }
+        .stage-sit { background-color: #1e7e34 !important; }
+        .stage-stg { background-color: #c69500 !important; }
+        .stage-uat { background-color: #a71d2a !important; }
 
         .child-table { padding: 10px; border-radius: 5px; margin-top: 5px; }
 
@@ -42,11 +43,14 @@
             color: black;
             font-weight: bold;
         }
-
         .toggle-all-btn:hover {
             text-decoration: underline;
         }
 
+        /* Define the hidden class to hide elements */
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="container my-4">
@@ -57,7 +61,7 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th class="arrow-column">▼</th> <!-- New column for the main arrow -->
+                <th class="arrow-column">▼</th>
                 <th>API Proxy</th>
                 <th class="dev">DEV</th>
                 <th class="hf">HF</th>
@@ -68,6 +72,11 @@
         </thead>
         <tbody id="dataTable"></tbody>
     </table>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JavaScript Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         $(document).ready(function () {
@@ -112,14 +121,14 @@
                 data.forEach((item, index) => {
                     let proxyRow = `<tr class="proxy-header">
                         <td class="arrow-column">
-                            <span class="toggle-all-btn toggle-btn" data-target=".proxy-${index}">▼</span>
+                            <span class="toggle-all-btn" data-target=".proxyEnv-${index}">▼</span>
                         </td>
                         <td class="proxy-name">
                             <strong>${item.apiproxy}</strong>
                         </td>`;
 
                     Object.keys(stages).forEach(stage => {
-                        proxyRow += `<td class="toggle-btn" data-target="#env-${index}-${stage}">
+                        proxyRow += `<td class="toggle-btn" data-target=".proxyEnv-${index}-${stage}">
                             OPEN
                         </td>`;
                     });
@@ -130,37 +139,58 @@
                         let stageData = stages[stage];
 
                         proxyRow += `
-                        <tr id="env-${index}-${stage}" class="collapse ${stageData.rowClass} proxy-${index}">
+                        <tr class="hidden ${stageData.rowClass} proxyEnv-${index} proxyEnv-${index}-${stage}">
                             <td colspan="7">
                                 <div class="${stageData.tableClass} p-3 ${stageData.rowClass}">
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
-                                                <th colspan="4">${stageData.name} (${stage.toUpperCase()})</th>
+                                                <th colspan="3">${stageData.name} (${stage.toUpperCase()})</th>
                                             </tr>
                                             <tr>
                                                 <th>Privacy</th>
                                                 <th>Environment</th>
-                                                <th>Revision</th>
-                                                <th>Hash</th>
+                                                <th>Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>`;
 
                         ["priv", "pub"].forEach(type => {
                             let envKey = `env1${stage}-${type}`;
-                            let revKey = `${envKey}_revision`;
-                            let hashKey = `${envKey}_hash`;
-                            let revision = item[revKey] === -1 ? '<span class="not-deployed">Not Deployed</span>' : item[revKey];
-                            let hash = item[hashKey] || '<span class="not-deployed">Not Deployed</span>';
+                            let propertyKeys = Object.keys(item).filter(key => key.startsWith(envKey));
+                            let statusContent = '';
+
+                            let revisionKey = `${envKey}_revision`;
+                            let isDeployed = item[revisionKey] !== -1;
+
+                            if (!isDeployed) {
+                                statusContent = '<span class="not-deployed">Not Deployed</span>';
+                            } else {
+                                // Collect all properties for this environment and type
+                                let properties = {};
+                                propertyKeys.forEach(key => {
+                                    let propName = key.replace(`${envKey}_`, '');
+                                    properties[propName] = item[key];
+                                });
+
+                                // Build status content
+                                statusContent = '';
+                                for (let prop in properties) {
+                                    if (properties[prop]) {
+                                        statusContent += `<strong>${prop.charAt(0).toUpperCase() + prop.slice(1)}:</strong> ${properties[prop]}<br>`;
+                                    }
+                                }
+                                // Remove the last <br>
+                                statusContent = statusContent.replace(/<br>$/, '');
+                            }
+
                             let privacy = type.toUpperCase();
 
                             proxyRow += `
                                 <tr>
                                     <td><strong>${privacy}</strong></td>
                                     <td>${envKey}</td>
-                                    <td>${revision}</td>
-                                    <td>${hash}</td>
+                                    <td>${statusContent}</td>
                                 </tr>`;
                         });
 
@@ -175,32 +205,43 @@
                     $("#dataTable").append(proxyRow);
                 });
 
-                $(".toggle-btn").click(function () {
+                // Individual stage toggle buttons
+                $(".toggle-btn").click(function (e) {
+                    e.stopPropagation(); // Prevent triggering parent toggles
                     let target = $(this).data("target");
 
-                    // Toggle the selected row
-                    $(target).toggleClass("collapse");
-                    let isVisible = !$(target).hasClass("collapse");
+                    // Toggle the selected rows
+                    $(target).toggleClass("hidden");
+                    let isVisible = !$(target).first().hasClass("hidden");
                     $(this).text(isVisible ? "CLOSE" : "OPEN");
                 });
 
-                // Add click functionality to the "Expand All" button for each proxy
-                $(".toggle-all-btn").click(function () {
-                    let target = $(this).data("target");
+                // Main arrow toggle for each proxy
+                $(".toggle-all-btn").click(function (e) {
+                    e.stopPropagation(); // Prevent triggering parent toggles
+                    let targetSelector = $(this).data("target");
+                    let $targets = $(targetSelector);
 
-                    // Determine the current state (whether it's collapsed or expanded)
-                    let isVisible = $(target).hasClass("collapse");
+                    // Determine if we are opening or closing all stages
+                    let isCurrentlyVisible = !$targets.first().hasClass("hidden");
 
-                    // Show or hide all child rows
-                    $(target).toggleClass("collapse", !isVisible);
-
-                    // Change the icon for the main proxy toggle
-                    $(this).text(isVisible ? "▲" : "▼");
-
-                    // Toggle the text for all individual stage toggle buttons
-                    $(target).find(".toggle-btn").each(function () {
-                        $(this).text(isVisible ? "CLOSE" : "OPEN");
-                    });
+                    if (isCurrentlyVisible) {
+                        // Currently visible, so we want to hide all stages
+                        $targets.addClass("hidden");
+                        $(this).text("▼"); // Update arrow to indicate stages are closed
+                        // Update individual toggle buttons to show "OPEN"
+                        $(this).closest('tr').find('.toggle-btn').each(function () {
+                            $(this).text("OPEN");
+                        });
+                    } else {
+                        // Currently hidden, so we want to show all stages
+                        $targets.removeClass("hidden");
+                        $(this).text("▲"); // Update arrow to indicate stages are open
+                        // Update individual toggle buttons to show "CLOSE"
+                        $(this).closest('tr').find('.toggle-btn').each(function () {
+                            $(this).text("CLOSE");
+                        });
+                    }
                 });
             }
 
