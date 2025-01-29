@@ -4,9 +4,9 @@ const fs = require('fs');
 const path = require('path');
 
 // Define paths relative to the current script directory
-const dataPath = path.join(__dirname, '..', 'data.json');
-const indexHtmlPath = path.join(__dirname, '..', 'index.html');
-const imageSvgPath = path.join(__dirname, '..', 'image.svg');
+const dataPath = path.join(__dirname, '..', 'data.json');          
+const indexHtmlPath = path.join(__dirname, '..', 'index.html');    
+const imageSvgPath = path.join(__dirname, '..', 'image.svg');      
 
 // Load the JSON data
 const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));

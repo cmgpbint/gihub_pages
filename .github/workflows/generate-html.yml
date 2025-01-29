@@ -16,23 +16,25 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.0.0
         with:
           persist-credentials: false  # Don't use the token from the checkout action
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4.2.0
         with:
-          node-version: '16'  # Specify the Node.js version you prefer
+          node-version: '18'  # Use Node.js version 18
 
       - name: Install dependencies
+        working-directory: app
         run: npm install
 
       - name: Generate HTML and SVG
+        working-directory: app
         run: npm run generate
 
       - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
           commit_message: 'Auto-generated index.html and image.svg from data.json'
           file_pattern: |

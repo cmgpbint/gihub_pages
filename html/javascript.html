@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Proxy Deployment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        body { background-color: #f8f9fa; }
+        .not-deployed { color: red; font-weight: bold; }
+        .table th, .table td { text-align: center; vertical-align: middle; }
+        .toggle-btn { cursor: pointer; color: #007bff; font-weight: bold; }
+        .toggle-btn:hover { text-decoration: underline; }
+        .proxy-header { background: white; font-weight: bold; }
+
+        /* Colors for Each Stage */
+        th.dev, .child-table.dev th { background-color: #007bff !important; color: white !important; }
+        th.hf,  .child-table.hf th  { background-color: #6f42c1 !important; color: white !important; }
+        th.sit, .child-table.sit th { background-color: #28a745 !important; color: white !important; }
+        th.stg, .child-table.stg th { background-color: #ffc107 !important; color: black !important; }
+        th.uat, .child-table.uat th { background-color: #dc3545 !important; color: white !important; }
+
+        /* Darker Backgrounds for Child Tables */
+        .stage-dev { background-color: #0056b3 !important; }
+        .stage-hf  { background-color: #4b0082 !important; }
+        .stage-sit { background-color: #1e7e34 !important; }
+        .stage-stg { background-color: #c69500 !important; }
+        .stage-uat { background-color: #a71d2a !important; }
+
+        .child-table { padding: 10px; border-radius: 5px; margin-top: 5px; }
+
+        /* Aligning the Proxy Name to the Left */
+        .proxy-name { text-align: left !important; }
+
+        /* Space for the New Column (Arrow) */
+        .arrow-column { width: 50px; }
+
+        /* Main Arrow (Keep it Black and Underlined on Hover) */
+        .toggle-all-btn {
+            cursor: pointer;
+            color: black;
+            font-weight: bold;
+        }
+        .toggle-all-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* Define the hidden class to hide elements */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="container my-4">
+    <h2 class="mb-4 text-center">API Proxy Deployment Status</h2>
+
+    <input type="file" id="fileInput" class="form-control mb-3" accept=".json">
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th class="arrow-column">▼</th>
+                <th>API Proxy</th>
+                <th class="dev">DEV</th>
+                <th class="hf">HF</th>
+                <th class="sit">SIT</th>
+                <th class="stg">STG</th>
+                <th class="uat">UAT</th>
+            </tr>
+        </thead>
+        <tbody id="dataTable"></tbody>
+    </table>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JavaScript Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            const stages = {
+                "dev": { name: "Development", rowClass: "stage-dev", tableClass: "child-table dev" },
+                "hf": { name: "Hotfix", rowClass: "stage-hf", tableClass: "child-table hf" },
+                "sit": { name: "System Integration Testing", rowClass: "stage-sit", tableClass: "child-table sit" },
+                "stg": { name: "Staging", rowClass: "stage-stg", tableClass: "child-table stg" },
+                "uat": { name: "User Acceptance Testing", rowClass: "stage-uat", tableClass: "child-table uat" }
+            };
+
+            function loadJsonFile(file) {
+                let reader = new FileReader();
+                reader.onload = function (event) {
+                    try {
+                        let jsonData = JSON.parse(event.target.result);
+                        populateTable(jsonData);
+                    } catch (error) {
+                        alert("Invalid JSON file.");
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            function loadDefaultJson() {
+                $.getJSON("data.json", function (data) {
+                    populateTable(data);
+                }).fail(function () {
+                    alert("Failed to load data.json. Please select a JSON file manually.");
+                });
+            }
+
+            $("#fileInput").on("change", function (event) {
+                let file = event.target.files[0];
+                if (file) {
+                    loadJsonFile(file);
+                }
+            });
+
+            function populateTable(data) {
+                $("#dataTable").empty();
+                data.forEach((item, index) => {
+                    let proxyRow = `<tr class="proxy-header">
+                        <td class="arrow-column">
+                            <span class="toggle-all-btn" data-target=".proxyEnv-${index}">▼</span>
+                        </td>
+                        <td class="proxy-name">
+                            <strong>${item.apiproxy}</strong>
+                        </td>`;
+
+                    Object.keys(stages).forEach(stage => {
+                        proxyRow += `<td class="toggle-btn" data-target=".proxyEnv-${index}-${stage}">
+                            OPEN
+                        </td>`;
+                    });
+
+                    proxyRow += `</tr>`;
+
+                    Object.keys(stages).forEach(stage => {
+                        let stageData = stages[stage];
+
+                        proxyRow += `
+                        <tr class="hidden ${stageData.rowClass} proxyEnv-${index} proxyEnv-${index}-${stage}">
+                            <td colspan="7">
+                                <div class="${stageData.tableClass} p-3 ${stageData.rowClass}">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th colspan="3">${stageData.name} (${stage.toUpperCase()})</th>
+                                            </tr>
+                                            <tr>
+                                                <th>Privacy</th>
+                                                <th>Environment</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>`;
+
+                        ["priv", "pub"].forEach(type => {
+                            let envKey = `env1${stage}-${type}`;
+                            let propertyKeys = Object.keys(item).filter(key => key.startsWith(envKey));
+                            let statusContent = '';
+
+                            let revisionKey = `${envKey}_revision`;
+                            let isDeployed = item[revisionKey] !== -1;
+
+                            if (!isDeployed) {
+                                statusContent = '<span class="not-deployed">Not Deployed</span>';
+                            } else {
+                                // Collect all properties for this environment and type
+                                let properties = {};
+                                propertyKeys.forEach(key => {
+                                    let propName = key.replace(`${envKey}_`, '');
+                                    properties[propName] = item[key];
+                                });
+
+                                // Build status content
+                                statusContent = '';
+                                for (let prop in properties) {
+                                    if (properties[prop]) {
+                                        statusContent += `<strong>${prop.charAt(0).toUpperCase() + prop.slice(1)}:</strong> ${properties[prop]}<br>`;
+                                    }
+                                }
+                                // Remove the last <br>
+                                statusContent = statusContent.replace(/<br>$/, '');
+                            }
+
+                            let privacy = type.toUpperCase();
+
+                            proxyRow += `
+                                <tr>
+                                    <td><strong>${privacy}</strong></td>
+                                    <td>${envKey}</td>
+                                    <td>${statusContent}</td>
+                                </tr>`;
+                        });
+
+                        proxyRow += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+
+                    $("#dataTable").append(proxyRow);
+                });
+
+                // Individual stage toggle buttons
+                $(".toggle-btn").click(function (e) {
+                    e.stopPropagation(); // Prevent triggering parent toggles
+                    let target = $(this).data("target");
+
+                    // Toggle the selected rows
+                    $(target).toggleClass("hidden");
+                    let isVisible = !$(target).first().hasClass("hidden");
+                    $(this).text(isVisible ? "CLOSE" : "OPEN");
+                });
+
+                // Main arrow toggle for each proxy
+                $(".toggle-all-btn").click(function (e) {
+                    e.stopPropagation(); // Prevent triggering parent toggles
+                    let targetSelector = $(this).data("target");
+                    let $targets = $(targetSelector);
+
+                    // Determine if we are opening or closing all stages
+                    let isCurrentlyVisible = !$targets.first().hasClass("hidden");
+
+                    if (isCurrentlyVisible) {
+                        // Currently visible, so we want to hide all stages
+                        $targets.addClass("hidden");
+                        $(this).text("▼"); // Update arrow to indicate stages are closed
+                        // Update individual toggle buttons to show "OPEN"
+                        $(this).closest('tr').find('.toggle-btn').each(function () {
+                            $(this).text("OPEN");
+                        });
+                    } else {
+                        // Currently hidden, so we want to show all stages
+                        $targets.removeClass("hidden");
+                        $(this).text("▲"); // Update arrow to indicate stages are open
+                        // Update individual toggle buttons to show "CLOSE"
+                        $(this).closest('tr').find('.toggle-btn').each(function () {
+                            $(this).text("CLOSE");
+                        });
+                    }
+                });
+            }
+
+            loadDefaultJson();
+        });
+    </script>
+</body>
+</html>
