@@ -4,9 +4,9 @@ const fs = require('fs');
 const path = require('path');
 
 // Define paths relative to the current script directory
-const dataPath = path.join(__dirname, '..', 'data.json');          
-const indexHtmlPath = path.join(__dirname, '..', 'index.html');    
-const imageSvgPath = path.join(__dirname, '..', 'image.svg');      
+const dataPath = path.join(__dirname, '..', 'data.json');
+const indexHtmlPath = path.join(__dirname, '..', 'index.html');
+const imageSvgPath = path.join(__dirname, '..', 'image.svg');
 
 // Load the JSON data
 const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
@@ -27,8 +27,6 @@ let htmlContent = `<!DOCTYPE html>
     <meta charset="UTF-8">
     <title>API Proxy Deployment Status</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap CSS (Optional for styling) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <style>
         body { background-color: #f8f9fa; }
@@ -186,22 +184,36 @@ console.log('index.html has been generated successfully.');
 // Now generate image.svg by wrapping the content of index.html
 let indexHtmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
 
-// Remove <!DOCTYPE html>, <html>, and <body> tags to include only the content
-indexHtmlContent = indexHtmlContent.replace(/<!DOCTYPE html>/i, '');
-indexHtmlContent = indexHtmlContent.replace(/<html[^>]*>/i, '');
-indexHtmlContent = indexHtmlContent.replace(/<\/html>/i, '');
-indexHtmlContent = indexHtmlContent.replace(/<body[^>]*>/i, '');
-indexHtmlContent = indexHtmlContent.replace(/<\/body>/i, '');
+// Extract styles from <style> tags in <head>
+let styleContent = '';
+const styleMatches = indexHtmlContent.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+if (styleMatches) {
+  styleMatches.forEach(function(match) {
+    const contentMatch = match.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+    if (contentMatch) {
+      styleContent += contentMatch[1];
+    }
+  });
+}
 
-// Wrap the content inside an SVG foreignObject
-const svgContent = `<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+// Extract body content
+let bodyContent = '';
+const bodyMatch = indexHtmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+if (bodyMatch) {
+  bodyContent = bodyMatch[1];
+} else {
+  // If no body tag found, use the entire content as body content
+  bodyContent = indexHtmlContent;
+}
+
+// Build the SVG content
+const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800">
   <foreignObject width="100%" height="100%">
-    <style>
-      /* Include any necessary styles here */
-      body { margin: 0; }
-    </style>
     <div xmlns="http://www.w3.org/1999/xhtml">
-      ${indexHtmlContent}
+      <style>
+        ${styleContent}
+      </style>
+      ${bodyContent}
     </div>
   </foreignObject>
 </svg>`;
