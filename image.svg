@@ -1,30 +1,104 @@
-<svg fill="none" viewBox="0 0 120 120" width="120" height="120" xmlns="http://www.w3.org/2000/svg">
-  <foreignObject width="100%" height="100%">
+<svg width="500" height="400" xmlns="http://www.w3.org/2000/svg">
+  <foreignObject x="0" y="0" width="500" height="400">
     <div xmlns="http://www.w3.org/1999/xhtml">
       <style>
-@keyframes bounce {
-  0%   { transform: scale(1,    1)   translateY(0)     skew(0deg,  0deg); }
-  3%   { transform: scale(1,    1)   translateY(0)     skew(0deg,  0deg); }
-  5%   { transform: scale(1.1,  .9)  translateY(5px)   skew(0deg,  0deg); }
-  12%  { transform: scale(.9,   1.1) translateY(-70px) skew(25deg, 5deg); }
-  13%  { transform: scale(.9,   1.1) translateY(-70px) skew(25deg, 5deg); }
-  20%  { transform: scale(1.05, .95) translateY(0)     skew(0deg,  0deg); }
-  22%  { transform: scale(1,    1)   translateY(-7px)  skew(0deg,  0deg); }
-  27%  { transform: scale(1,    1)   translateY(0)     skew(0deg,  0deg); }
-  100% { transform: scale(1,    1)   translateY(0)     skew(0deg,  0deg); }
-}
-h1 {
-  width: 120px;
-  line-height: 20px;
-  padding-top: 70px;
-  text-align: center;
-  font: 400 16px/1.5 Helvetica ,Arial ,sans-serif;
-  color: rgb(52, 73, 94);
-  transform-origin: bottom;
-  animation: 4s cubic-bezier(.5, 0, .5, 1.2) 1s infinite bounce;
-}
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        th, td {
+          padding: 10px;
+          text-align: left;
+          border: 1px solid #ddd;
+        }
+
+        th {
+          background-color: #f4f4f4;
+        }
+
+        .filter {
+          margin-bottom: 10px;
+        }
+
+        .filter label {
+          margin-right: 10px;
+        }
+
+        .filter input[type="checkbox"] {
+          margin-right: 5px;
+        }
       </style>
-      <h1>Hello, world</h1>
+
+      <h1>Filterable Table with HTML - CSS + JavaScript</h1>
+
+      <!-- Filters (Checkboxes) -->
+      <div class="filter">
+        <label>
+          <input type="checkbox" checked="checked" class="category1Filter"/> Category 1
+        </label>
+        <label>
+          <input type="checkbox" checked="checked" class="category2Filter"/> Category 2
+        </label>
+      </div>
+
+      <!-- Table -->
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="category1">
+            <td>Item A</td>
+            <td>Category 1</td>
+            <td>$10</td>
+          </tr>
+          <tr class="category2">
+            <td>Item B</td>
+            <td>Category 2</td>
+            <td>$15</td>
+          </tr>
+          <tr class="category1">
+            <td>Item C</td>
+            <td>Category 1</td>
+            <td>$12</td>
+          </tr>
+          <tr class="category2">
+            <td>Item D</td>
+            <td>Category 2</td>
+            <td>$20</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <script>
+        // Get all the checkboxes and the table rows
+        const category1Checkbox = document.querySelector('.category1Filter');
+        const category2Checkbox = document.querySelector('.category2Filter');
+        const category1Rows = document.querySelectorAll('.category1');
+        const category2Rows = document.querySelectorAll('.category2');
+
+        // Function to toggle the rows visibility
+        function toggleRows() {
+          category1Rows.forEach(row => {
+            row.style.display = category1Checkbox.checked ? '' : 'none';
+          });
+          category2Rows.forEach(row => {
+            row.style.display = category2Checkbox.checked ? '' : 'none';
+          });
+        }
+
+        // Add event listeners to checkboxes
+        category1Checkbox.addEventListener('change', toggleRows);
+        category2Checkbox.addEventListener('change', toggleRows);
+
+        // Initialize visibility based on the initial state of the checkboxes
+        toggleRows();
+      </script>
     </div>
   </foreignObject>
 </svg>
