@@ -1,6 +1,6 @@
 [
     {
-      "apiproxy": "agite-alpt-acc-orders",
+      "apiproxy": "proxy-A",
       "env1dev-priv_hash": "",
       "env1dev-priv_revision": -1,
       "env1dev-pub_hash": "e6a01781f666d142270814907bedf02739223de1",
@@ -23,7 +23,7 @@
       "env1uat-pub_revision": 12
     },
     {
-      "apiproxy": "agite-alpt-AccountManagement_temp",
+      "apiproxy": "proxy-b",
       "env1dev-priv_hash": "",
       "env1dev-priv_revision": -1,
       "env1dev-pub_hash": "",
@@ -46,7 +46,7 @@
       "env1uat-pub_revision": 22
     },
     {
-      "apiproxy": "agite-alpt-acdc-service",
+      "apiproxy": "proxy-c",
       "env1dev-priv_hash": "358825f151ce5918c2a0129564cb780156e2e370",
       "env1dev-priv_revision": 1,
       "env1dev-pub_hash": "",
@@ -69,7 +69,7 @@
       "env1uat-pub_revision": -1
     },
     {
-      "apiproxy": "agite-alpt-apim",
+      "apiproxy": "proxy-D",
       "env1dev-priv_hash": "",
       "env1dev-priv_revision": -1,
       "env1dev-pub_hash": "7e88187367488807c03f7159980ce1ea61ca6ecd",
@@ -92,7 +92,7 @@
       "env1uat-pub_revision": 1
     },
     {
-      "apiproxy": "agite-alpt-apim-auth-test",
+      "apiproxy": "proxy-E",
       "env1dev-priv_hash": "",
       "env1dev-priv_revision": 1,
       "env1dev-pub_hash": "",
